@@ -1,15 +1,16 @@
 // 引入 LinkedList 类
 import java.util.LinkedList;
 
-public class RunoobTest1 {
+public class RunoobTest2 {
     public static void main(String[] args) {
         LinkedList<String> sites = new LinkedList<String>();
         sites.add("Google");
         sites.add("Runoob");
         sites.add("Taobao");
-        // 使用 addFirst() 在头部添加元素 同理使用 addLast() 在尾部添加元素
-        sites.addFirst("Wiki");
-        //sites.addLast("Wiki");
+        sites.add("Weibo");
+        // 使用 removeFirst() 移除头部元素 同理使用 removeLast() 移除尾部元素
+        sites.removeFirst();
+        //sites.removeLast();
         System.out.println(sites);
     }
 }
