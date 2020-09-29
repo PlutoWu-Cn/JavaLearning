@@ -1,6 +1,6 @@
 import java.util.LinkedList;
 import java.util.Queue;
-
+ 
 public class QueueDemo {
     public static void main(final String[] args) {
         // add()和remove()方法在失败的时候会抛出异常(不推荐)
