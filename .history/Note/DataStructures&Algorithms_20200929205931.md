@@ -484,26 +484,492 @@ AVL树本质上还是一棵二叉搜索树，它的特点是： <br>
 2.带有平衡条件：每个结点的左右子树的高度之差的绝对值（平衡因子）最多为1。
 也就是说，AVL树，本质上是带了平衡功能的二叉查找树（二叉排序树，二叉搜索树）。
 
+#### 操作AVLTREE
+``` c++
+#include <iostream.h>　
+#include <math.h>；　
+#include <stdlib.h>；　//建立一个整数类型　
+ 
+#define MAXSIZE 512
+　
+typedef struct obj_n_t　{　int obj_key；　} obj_node_t；　//建立树结点的基本机构　
+typedef struct tree_n_t {　int key；　struct tree_n_t *left,*right；　int height；
+} tree_node_t；　//建立堆栈　
+　
+tree_node_t *stack[MAXSIZE]; //warning!the tree can contain 256 leaves at most!　
+int i=0; //堆栈计数器　//堆栈清空　
+void stack_clear()　
+{　
+    while(i!=0)
+    {
+        stack[i-1]=NULL;
+        i--;
+    }
+}
+//堆栈为空
+int stack_empty()
+{
+    return(i==0);
+}
+//入栈函数
+int push(tree_node_t *node)
+{
+    if(i<MAXSIZE)
+    {
+        stack[i++]=node;
+        return(0);
+    }
+    else
+    return(-1)；
+}
+//出栈函数
+tree_node_t *pop()
+{
+    if(i>0)
+    return(stack[--i]);
+    else
+    return(0);
+}
+//建立get_node函数，用于动态分配内存空间
+tree_node_t *get_node()
+{
+    tree_node_t *tmp;
+    tmp=(tree_node_t *)malloc(sizeof(tree_node_t));
+    return(tmp);
+}
+//建立return_node函数，用于释放内存
+void return_node(tree_node_t *free_node)
+{
+    free(free_node);
+}
+//建立左旋转函数
+void left_rotation(tree_node_t *node)
+{
+    tree_node_t *tmp;
+    int tmp_key;
+    tmp=node->left;
+    tmp_key=node->key;
+    node->left=node->right;
+    node->key=node->right->key;
+    node->right=node->left->right;
+    node->left->right=node->left->left;
+    node->left->left=tmp;
+    node->left->key=tmp_key;
+}
+//建立右旋转函数
+void right_rotation(tree_node_t *node)
+{
+    tree_node_t *tmp;
+    int tmp_key;
+    tmp=node->right;
+    tmp_key=node->key;
+    node->right=node->left;
+    node->key=node->left->key;
+    node->left=node->right->left;
+    node->right->left=node->right->right;
+    node->right->right=tmp;
+    node->right->key=tmp_key;
+}
+int rebalance(tree_node_t *node)
+{
+    int finished=0;
+    while(!stack_empty()&&!finished)
+    {
+        int tmp_height,old_height;
+        node=pop(); //back to the root along the search path
+        old_height=node->height;
+        if(node->left->height-node->right->height==2）
+        {
+            if(node->left->left->height-node->right->height==1）
+            {
+right_rotation(node);
+node->right->height=node->right->left->height+1;
+node->height=node->right->height+1;
+}
+else
+{
+left_rotation(node->left);
+right_rotation(node);
+tmp_height=node->left->left->height;
+node->left->height=tmp_height+1;
+node->right->height=tmp_height+1;
+node->height=tmp_height+2;
+}
+}
+else if(node->left->height-node->right->height==-2）
+{
+if(node->right->right->height-node->left->height==1）
+{
+left_rotation(node);
+node->left->height=node->left->right->height+1;
+node->height=node->left->height+1;
+}
+else
+{
+right_rotation(node->right);
+left_rotation(node);
+tmp_height=node->right->right->height;
+node->left->height=tmp_height+1;
+node->right->height=tmp_height+1;
+node->height=tmp_height+2;
+}
+}
+else
+{
+if(node->left->height>node->right->height)
+node->height=node->left->height+1;
+else
+node->height=node->right->height+1;
+}
+if(node->height==old_height)
+finished=1;
+}
+stack_clear();
+return(0);
+}
+//建立creat_tree函数，用于建立一颗空树
+tree_node_t *creat_tree()
+{
+tree_node_t *root;
+root=get_node();
+root->left=root->right=NULL;
+root->height=0;
+return(root); //build up an empty tree.the first insert bases on the empty tree.
+}
+//建立find函数，用于查找一个对象
+obj_node_t *find(tree_node_t *tree,int query_key)
+{
+tree_node_t *tmp;
+if(tree->left==NULL)
+return(NULL);
+else
+{
+tmp=tree;
+while(tmp->right!=NULL)
+{
+if(query_key<tmp->key)
+tmp=tmp->left;
+else
+tmp=tmp->right;
+}
+if(tmp->key==query_key)
+return((obj_node_t*)tmp->left);
+else
+return(NULL);
+}
+}
+//建立插入函数
+int insert(tree_node_t *tree,obj_node_t *new_obj)
+{
+tree_node_t *tmp;
+int query_key,new_key;
+query_key=new_key=new_obj->obj_key;
+if(tree->left==NULL)
+{
+tree->left=(tree_node_t *)new_obj;
+tree->key=new_key;
+tree->height=0;
+tree->right=NULL;
+}
+else
+{
+stack_clear();
+tmp=tree;
+while(tmp->right!=NULL)
+{
+//use stack to remember the path from root to the position at which the new object should be inserted.
+//then after inserting,we can rebalance from the parrent node of the leaf which pointing to new object to the root node.
+push(tmp);
+if(query_key<tmp->key)
+tmp=tmp->left;
+else
+tmp=tmp->right;
+}
+if(tmp->key==query_key)
+return(-1）；
+else
+{
+tree_node_t *old_leaf,*new_leaf;
+//It must allocate 2 node space in memory.
+//One for the new one,another for the old one.
+//the previous node becomes the parrent of the new node.
+//when we delete a leaf,it will free two node memory spaces as well.
+old_leaf=get_node();
+old_leaf->left=tmp->left;
+old_leaf->key=tmp->key;
+old_leaf->right=NULL;
+old_leaf->height=0;
+new_leaf=get_node();
+new_leaf->left=(tree_node_t *)new_obj;
+new_leaf->key=new_key;
+new_leaf->right=NULL;
+new_leaf->height=0;
+if(tmp->key<new_key)
+{
+tmp->left=old_leaf;
+tmp->right=new_leaf;
+tmp->key=new_key;
+}
+else
+{
+tmp->left=new_leaf;
+tmp->right=old_leaf;
+}
+tmp->height=1;
+}
+}
+rebalance(tmp);
+return(0);
+}
+//建立删除函数
+int del(tree_node_t *tree,int key)
+{
+tree_node_t *tmp,*upper,*other;
+if(tree->left==NULL)
+return(-1）；
+else if(tree->right==NULL)
+{
+if(tree->key==key)
+{
+tree->left=NULL;
+return(0);
+}
+else
+return(-1）；
+}
+else
+{
+tmp=tree;
+stack_clear();
+while(tmp->right!=NULL)
+{
+upper=tmp;
+push(upper);
+if(key<tmp->key)
+{
+tmp=upper->left;
+other=upper->right;
+}
+else
+{
+tmp=upper->right;
+other=upper->left;
+}
+}
+if(tmp->key!=key)
+return(-1）；
+else
+{
+upper->key=other->key;
+upper->left=other->left;
+upper->right=other->right;
+upper->height=upper->height-1;
+return_node(tmp);
+return_node(other);
+rebalance(pop());
+//here must pop,then rebalance can run from the parrent of upper,because upper has become a leaf.
+return(0);
+}
+}
+}
+//建立测试遍历函数
+int travel(tree_node_t *tree)
+{
+stack_clear();
+if(tree->left==NULL)
+push(tree);
+else if(tree->left!=NULL)
+{
+int m=0;
+push(tree);
+while(i!=m)
+{
+if(stack[m]->left!=NULL && stack[m]->right!=NULL)
+{
+push(stack[m]->left);
+push(stack[m]->right);
+}
+m++;
+}
+}
+return(0);
+}
+//建立测试函数
+int test_structure(tree_node_t *tree)
+{
+travel(tree);
+int state=-1;
+while(!stack_empty())
+{
+--i;
+if(stack->right==NULL && stack->height==0) //this statement is leaf,but also contains an empty tree
+state=0;
+else if(stack->left!=NULL && stack->right!=NULL)
+{
+if(abs(stack->height-stack->height)<=1）
+state=0;
+else
+{
+state=-1;
+stack_clear();
+}
+}
+}
+stack_clear();
+return(state);
+}
+//建立remove_tree函数
+int remove_tree(tree_node_t *tree)
+{
+travel(tree);
+if(stack_empty())
+return(-1）；
+else
+{
+while(!stack_empty())
+{
+return_node(pop());
+}
+return(0);
+}
+}
+void main()
+{
+tree_node_t *atree=NULL;
+obj_node_t obj[256],*f; //MAXSIZE=n(number of leaf)+(n-1） number of node
+int n,j=0;
+cout<<"Now Let's start this program! There is no tree in memory.\n";
+int item;
+while(item!=0)
+{
+cout<<"\nRoot address = "<<atree<<"\n";
+cout<<"\n1.Create a tree\n";
+cout<<"\n2.Insert a int type object\n";
+cout<<"\n3.Test the structure of the tree\n";
+cout<<"\n4.Find a object\n";
+cout<<"\n6.Delete a object\n";
+cout<<"\n7.Remove the Tree\n";
+cout<<"\n0.Exit\n";
+cout<<"\nPlease select:";
+cin>>item;
+cout<<"\n\n\n";
+switch(item)
+{
+case 1:
+{
+atree=creat_tree();
+cout<<"\nA new empty tree has been built up!\n";
+break;
+}
+case 2:
+{
+if(atree!=NULL)
+while(n!=3458）
+{
+cout<<"Please insert a new object.\nOnly one object every time（3458 is an end code) : ";
+cin>>n;
+if(n!=3458）
+{
+obj[j].obj_key=n;
+if(insert(atree,&obj[j])==0)
+{
+j++;
+cout<<"Integer "<<n<<" has been input!\n\n";
+}
+else
+cout<<"\n\nInsert failed!\n\n";
+}
+}
+else
+cout<<"\n\nNo tree in memory,insert Fail!\n\n";
+break;
+}
+case 3:
+{
+if(atree!=NULL)
+{
+n=test_structure(atree);
+if(n==-1）
+cout<<"\n\nIt's not a correct AVL tree.\n\n";
+if(n==0)
+cout<<"\n\nIt's a AVL tree\n\n";
+}
+else
+cout<<"\n\nNo tree in memory,Test Fail!\n\n";
+break;
+}
+case 4:
+{
+if(atree!=NULL)
+{
+cout<<"\n\nWhat do you want to find? : ";
+cin>>n;
+f=find(atree,n);
+if(f==NULL)
+{
+cout<<"\n\nSorry,"<<n<<" can't be found!\n\n";
+}
+else
+{
+cout<<"\n\nObject "<<f->obj_key<<" has been found!\n\n";
+}
+}
+else
+cout<<"\n\nNo tree in memory,Find Fail!\n\n";
+break;
+}
+case 5:
+{
+if(atree!=NULL)
+{
+travel(atree);
+for(int count=0;count<i;count++)
+{
+cout<<" "<<stack[count]->key<<",";
+}
+}
+else
+cout<<"\n\nNo tree in memory,Travel Fail!\n\n";
+break;
+}
+case 6:
+{
+if(atree!=NULL)
+{
+cout<<"\n\nWhich object do you want to delete?\n\n";
+cin>>n;
+if(del(atree,n)==0)
+{
+cout<<"\n\n"<<n<<" has been deleted!\n\n";
+}
+else
+cout<<"\n\nNo this object\n\n";
+}
+else
+cout<<"\n\nNo tree in memory,Delete Fail!\n\n";
+break;
+}
+case 7:
+{
+if(atree!=NULL)
+{
+remove_tree(atree);
+cout<<"\n\nThe Tree has been removed!\n\n";
+atree=NULL;
+}
+else
+cout<<"\n\nNo tree in memory,Removing Fail!\n\n";
+}
+default:
+cout<<"\n\nNo this operation!\n\n";
+}
+n=0;
+}
+}
+```
 
 
 ### 6. B和B+
-
-#### B树和B+树区别：
-
-* 关键字数量不同：B+树分支结点M个关键字，叶子节点也有M个；B树分支结点则存在 k-1 个关键码 
-* 数据存储位置不同：B+树数据存储在叶子结点上；B树存储在每个结点上；
-* 查询不同：B+树是从根节点到叶子节点的路径；B树是只需要找到数据就可以 
-* 分支节点存储信息不同：B+树存索引信息；B树存的是数据关键字
-  
-#### 小结
-
-* B树：二叉树，每个结点只存储一个关键字，等于则命中，小于走左结点，大于走右结点；
-
-* B-树：多路搜索树，每个结点存储M/2到M个关键字，非叶子结点存储指向关键字范围的子结点；所有关键字在整颗树中出现，且只出现一次，非叶子结点可以命中；
-
-* B+树：在B-树基础上，为叶子结点增加链表指针，所有关键字都在叶子结点中出现，非叶子结点作为叶子结点的索引；B+树总是到叶子结点才命中；
-
-* B*树： 在B+树基础上，为非叶子结点也增加链表指针，将结点的最低利用率从1/2提高到2/3；
 
 ## 四、字符串和数组
 
@@ -1096,61 +1562,7 @@ public class HeapSort {
 
 ### 8. 计数排序
 
-计数排序的核心在于将输入的数据值转化为键存储在额外开辟的数组空间中。作为一种线性时间复杂度的排序，计数排序要求输入的数据必须是有确定范围的整数。
-
-#### 算法的步骤如下：
-
-* （1）找出待排序的数组中最大和最小的元素
-* （2）统计数组中每个值为i的元素出现的次数，存入数组C的第i项
-* （3）对所有的计数累加（从C中的第一个元素开始，每一项和前一项相加）
-* （4）反向填充目标数组：将每个元素i放在新数组的第C(i)项，每放一个元素就将C(i)减去1
-
-![img](https://www.runoob.com/wp-content/uploads/2019/03/countingSort.gif)
-
-#### 代码实现
-``` java
-public class CountingSort implements IArraySort {
-
-    @Override
-    public int[] sort(int[] sourceArray) throws Exception {
-        // 对 arr 进行拷贝，不改变参数内容
-        int[] arr = Arrays.copyOf(sourceArray, sourceArray.length);
-
-        int maxValue = getMaxValue(arr);
-
-        return countingSort(arr, maxValue);
-    }
-
-    private int[] countingSort(int[] arr, int maxValue) {
-        int bucketLen = maxValue + 1;
-        int[] bucket = new int[bucketLen];
-
-        for (int value : arr) {
-            bucket[value]++;
-        }
-
-        int sortedIndex = 0;
-        for (int j = 0; j < bucketLen; j++) {
-            while (bucket[j] > 0) {
-                arr[sortedIndex++] = j;
-                bucket[j]--;
-            }
-        }
-        return arr;
-    }
-
-    private int getMaxValue(int[] arr) {
-        int maxValue = arr[0];
-        for (int value : arr) {
-            if (maxValue < value) {
-                maxValue = value;
-            }
-        }
-        return maxValue;
-    }
-
-}
-```
+https://www.cnblogs.com/freedom314/p/5847092.html
 
 
 

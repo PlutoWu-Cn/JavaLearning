@@ -488,23 +488,6 @@ AVL树本质上还是一棵二叉搜索树，它的特点是： <br>
 
 ### 6. B和B+
 
-#### B树和B+树区别：
-
-* 关键字数量不同：B+树分支结点M个关键字，叶子节点也有M个；B树分支结点则存在 k-1 个关键码 
-* 数据存储位置不同：B+树数据存储在叶子结点上；B树存储在每个结点上；
-* 查询不同：B+树是从根节点到叶子节点的路径；B树是只需要找到数据就可以 
-* 分支节点存储信息不同：B+树存索引信息；B树存的是数据关键字
-  
-#### 小结
-
-* B树：二叉树，每个结点只存储一个关键字，等于则命中，小于走左结点，大于走右结点；
-
-* B-树：多路搜索树，每个结点存储M/2到M个关键字，非叶子结点存储指向关键字范围的子结点；所有关键字在整颗树中出现，且只出现一次，非叶子结点可以命中；
-
-* B+树：在B-树基础上，为叶子结点增加链表指针，所有关键字都在叶子结点中出现，非叶子结点作为叶子结点的索引；B+树总是到叶子结点才命中；
-
-* B*树： 在B+树基础上，为非叶子结点也增加链表指针，将结点的最低利用率从1/2提高到2/3；
-
 ## 四、字符串和数组
 
 # 第二部分：算法思想
@@ -1096,61 +1079,7 @@ public class HeapSort {
 
 ### 8. 计数排序
 
-计数排序的核心在于将输入的数据值转化为键存储在额外开辟的数组空间中。作为一种线性时间复杂度的排序，计数排序要求输入的数据必须是有确定范围的整数。
-
-#### 算法的步骤如下：
-
-* （1）找出待排序的数组中最大和最小的元素
-* （2）统计数组中每个值为i的元素出现的次数，存入数组C的第i项
-* （3）对所有的计数累加（从C中的第一个元素开始，每一项和前一项相加）
-* （4）反向填充目标数组：将每个元素i放在新数组的第C(i)项，每放一个元素就将C(i)减去1
-
-![img](https://www.runoob.com/wp-content/uploads/2019/03/countingSort.gif)
-
-#### 代码实现
-``` java
-public class CountingSort implements IArraySort {
-
-    @Override
-    public int[] sort(int[] sourceArray) throws Exception {
-        // 对 arr 进行拷贝，不改变参数内容
-        int[] arr = Arrays.copyOf(sourceArray, sourceArray.length);
-
-        int maxValue = getMaxValue(arr);
-
-        return countingSort(arr, maxValue);
-    }
-
-    private int[] countingSort(int[] arr, int maxValue) {
-        int bucketLen = maxValue + 1;
-        int[] bucket = new int[bucketLen];
-
-        for (int value : arr) {
-            bucket[value]++;
-        }
-
-        int sortedIndex = 0;
-        for (int j = 0; j < bucketLen; j++) {
-            while (bucket[j] > 0) {
-                arr[sortedIndex++] = j;
-                bucket[j]--;
-            }
-        }
-        return arr;
-    }
-
-    private int getMaxValue(int[] arr) {
-        int maxValue = arr[0];
-        for (int value : arr) {
-            if (maxValue < value) {
-                maxValue = value;
-            }
-        }
-        return maxValue;
-    }
-
-}
-```
+https://www.cnblogs.com/freedom314/p/5847092.html
 
 
 
