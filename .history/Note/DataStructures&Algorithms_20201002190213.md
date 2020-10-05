@@ -1174,10 +1174,6 @@ bool operator<(const Student& otherStudent){
 }
 ```
 
-
-
-![](E:/Repository/fullstack-tutorial/notes/pics/sort_algorithm_analyze.png)
-
  
 
 ## 二、递归和回溯法

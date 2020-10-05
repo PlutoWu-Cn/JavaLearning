@@ -1173,11 +1173,7 @@ bool operator<(const Student& otherStudent){
     name < otherStudent.name;
 }
 ```
-
-
-
-![](E:/Repository/fullstack-tutorial/notes/pics/sort_algorithm_analyze.png)
-
+![](pics/sort_algorithm_analyze.png)
  
 
 ## 二、递归和回溯法
@@ -1234,8 +1230,7 @@ bool operator<(const Student& otherStudent){
 - f(0) = max{ v(0) + f(2) , v(1) + f(3) , v(2) + f(4) , … ,v(n-3) + f(n-1) , v(n-2),v(n-1) }
 
  (状态转移方程)
-
-![](E:/Repository/fullstack-tutorial/notes/pics/dynamic_programming.png)
+![](pics/dynamic_programming.png)
 
 
 
